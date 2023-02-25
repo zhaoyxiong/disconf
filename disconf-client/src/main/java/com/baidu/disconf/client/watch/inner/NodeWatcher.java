@@ -1,5 +1,9 @@
 package com.baidu.disconf.client.watch.inner;
 
+import com.baidu.disconf.client.common.model.DisconfKey;
+import com.baidu.disconf.client.core.processor.DisconfCoreProcessor;
+import com.baidu.disconf.client.curator.ZookeeperManager;
+import com.baidu.disconf.core.common.constants.DisConfigTypeEnum;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -9,10 +13,6 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.baidu.disconf.client.core.processor.DisconfCoreProcessor;
-import com.baidu.disconf.core.common.constants.DisConfigTypeEnum;
-import com.baidu.disconf.core.common.zookeeper.ZookeeperMgr;
-
 /**
  * 结点监控器
  *
@@ -21,7 +21,12 @@ import com.baidu.disconf.core.common.zookeeper.ZookeeperMgr;
  */
 public class NodeWatcher implements Watcher {
 
-    protected static final Logger LOGGER = LoggerFactory.getLogger(NodeWatcher.class);
+    protected static final Logger log = LoggerFactory.getLogger(NodeWatcher.class);
+
+    /**
+     * 唯一标识
+     */
+    private DisconfKey disconfKey = null;
 
     private String monitorPath = "";
     private String keyName = "";
@@ -32,6 +37,7 @@ public class NodeWatcher implements Watcher {
     private DisconfCoreProcessor disconfCoreMgr;
 
     /**
+     * 监控节点注册
      */
     public NodeWatcher(DisconfCoreProcessor disconfCoreMgr, String monitorPath, String keyName,
                        DisConfigTypeEnum disConfigTypeEnum, DisconfSysUpdateCallback disconfSysUpdateCallback,
@@ -44,30 +50,28 @@ public class NodeWatcher implements Watcher {
         this.keyName = keyName;
         this.disConfigTypeEnum = disConfigTypeEnum;
         this.disconfSysUpdateCallback = disconfSysUpdateCallback;
+        this.disconfKey = new DisconfKey(disConfigTypeEnum, keyName);
+        // 创建时注册到WatcherManager 中
+        WatcherInnerManager.registerWatcher(this.disconfKey, this);
     }
 
     /**
+     * 监控当前nodeWatcher， 调用ZookeeperManager 建立 getData
      */
     public void monitorMaster() {
 
-        //
-        // 监控
-        //
         Stat stat = new Stat();
         try {
-
-            ZookeeperMgr.getInstance().read(monitorPath, this, stat);
-
+//            ZookeeperMgr.getInstance().read(monitorPath, this, stat);
+            ZookeeperManager.getInstance().read(monitorPath, this, stat);
         } catch (InterruptedException e) {
-
-            LOGGER.info(e.toString());
-
+            log.info(e.toString());
         } catch (KeeperException e) {
-            LOGGER.error("cannot monitor " + monitorPath, e);
+            log.error("cannot monitor " + monitorPath, e);
+        } catch (Exception e) {
+            throw new IllegalStateException("monitor Master fail, ", e);
         }
-
-        LOGGER.debug("monitor path: (" + monitorPath + "," + keyName + "," + disConfigTypeEnum.getModelName() +
-                ") has been added!");
+        log.debug("monitor path: ({}, {}, {}) has been added!", monitorPath, keyName, disConfigTypeEnum.getModelName());
     }
 
     /**
@@ -83,7 +87,7 @@ public class NodeWatcher implements Watcher {
 
             try {
 
-                LOGGER.info("============GOT UPDATE EVENT " + event.toString() + ": (" + monitorPath + "," + keyName
+                log.info("============GOT UPDATE EVENT " + event.toString() + ": (" + monitorPath + "," + keyName
                         + "," + disConfigTypeEnum.getModelName() + ")======================");
 
                 // 调用回调函数, 回调函数里会重新进行监控
@@ -91,7 +95,7 @@ public class NodeWatcher implements Watcher {
 
             } catch (Exception e) {
 
-                LOGGER.error("monitor node exception. " + monitorPath, e);
+                log.error("monitor node exception. " + monitorPath, e);
             }
         }
 
@@ -101,10 +105,10 @@ public class NodeWatcher implements Watcher {
         if (event.getState() == KeeperState.Disconnected) {
 
             if (!debug) {
-                LOGGER.warn("============GOT Disconnected EVENT " + event.toString() + ": (" + monitorPath + ","
+                log.warn("============GOT Disconnected EVENT " + event.toString() + ": (" + monitorPath + ","
                         + keyName + "," + disConfigTypeEnum.getModelName() + ")======================");
             } else {
-                LOGGER.debug("============DEBUG MODE: GOT Disconnected EVENT " + event.toString() + ": (" +
+                log.debug("============DEBUG MODE: GOT Disconnected EVENT " + event.toString() + ": (" +
                         monitorPath +
                         "," +
                         keyName +
@@ -119,37 +123,43 @@ public class NodeWatcher implements Watcher {
 
             if (!debug) {
 
-                LOGGER.error("============GOT Expired  " + event.toString() + ": (" + monitorPath + "," + keyName
+                log.error("============GOT Expired  " + event.toString() + ": (" + monitorPath + "," + keyName
                         + "," + disConfigTypeEnum.getModelName() + ")======================");
 
                 // 重新连接
-                ZookeeperMgr.getInstance().reconnect();
+//                ZookeeperMgr.getInstance().reconnect();
 
                 callback();
             } else {
-                LOGGER.debug("============DEBUG MODE: GOT Expired  " + event.toString() + ": (" + monitorPath + ","
+                log.debug("============DEBUG MODE: GOT Expired  " + event.toString() + ": (" + monitorPath + ","
                         + "" + keyName + "," + disConfigTypeEnum.getModelName() + ")======================");
             }
         }
     }
 
     /**
-     *
+     * 回调时触发重新 reload 数据
      */
     private void callback() {
+        reload();
+    }
+
+    /**
+     * 重新reload 当前监听的 keyName
+     */
+    public void reload() {
 
         try {
-
             // 调用回调函数, 回调函数里会重新进行监控
             try {
                 disconfSysUpdateCallback.reload(disconfCoreMgr, disConfigTypeEnum, keyName);
             } catch (Exception e) {
-                LOGGER.error(e.toString(), e);
+                log.error(e.toString(), e);
             }
 
         } catch (Exception e) {
 
-            LOGGER.error("monitor node exception. " + monitorPath, e);
+            log.error("monitor node exception. " + monitorPath, e);
         }
     }
 }

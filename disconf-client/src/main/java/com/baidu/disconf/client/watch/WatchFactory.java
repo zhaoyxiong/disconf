@@ -1,5 +1,6 @@
 package com.baidu.disconf.client.watch;
 
+import com.baidu.disconf.client.watch.impl.WatchMgrCuratorImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,23 +37,22 @@ public class WatchFactory {
         if (hosts == null || zooPrefix == null) {
             synchronized(hostsSync) {
                 if (hosts == null || zooPrefix == null) {
-
                     // 获取 Zoo Hosts
                     try {
+                        hosts = fetcherMgr.getValueFromServer(
+                                DisconfWebPathMgr.getZooHostsUrl(
+                                        DisClientSysConfig.getInstance().CONF_SERVER_ZOO_ACTION));  // /api/zoo/hosts
+                        zooPrefix = fetcherMgr.getValueFromServer(
+                                DisconfWebPathMgr.getZooPrefixUrl(
+                                        DisClientSysConfig.getInstance().CONF_SERVER_ZOO_ACTION));  // /api/zoo/prefix
+                        // 老版本watcherMgr
+//                        WatchMgr watchMgr = new WatchMgrImpl();
+//                        watchMgr.init(hosts, zooPrefix, DisClientConfig.getInstance().DEBUG);
+                        // 新版本watcherMgr
+                        WatchMgr watchCuratorMgr = new WatchMgrCuratorImpl();
+                        watchCuratorMgr.init(hosts, zooPrefix, DisClientConfig.getInstance().DEBUG);
 
-                        hosts = fetcherMgr.getValueFromServer(DisconfWebPathMgr.getZooHostsUrl(DisClientSysConfig
-                                                                                                   .getInstance()
-                                                                                                   .CONF_SERVER_ZOO_ACTION));
-
-                        zooPrefix = fetcherMgr.getValueFromServer(DisconfWebPathMgr.getZooPrefixUrl(DisClientSysConfig
-                                                                                                        .getInstance
-                                                                                                             ()
-                                                                                                        .CONF_SERVER_ZOO_ACTION));
-
-                        WatchMgr watchMgr = new WatchMgrImpl();
-                        watchMgr.init(hosts, zooPrefix, DisClientConfig.getInstance().DEBUG);
-
-                        return watchMgr;
+                        return watchCuratorMgr;
 
                     } catch (Exception e) {
 

@@ -32,9 +32,9 @@ public class ConfigUpdater {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-
-        ConfigUpdater configUpdater = new ConfigUpdater(args[0]);
-        configUpdater.run();
-    }
+//    public static void main(String[] args) throws Exception {
+//
+//        ConfigUpdater configUpdater = new ConfigUpdater(args[0]);
+//        configUpdater.run();
+//    }
 }

@@ -49,6 +49,35 @@ public class ZookeeperMgrTest {
     }
 
     /**
+     * 测试获取Root子节点
+     */
+    @Test
+    public final void testConnect() throws Exception {
+
+        final ZookeeperMgr obj = ZookeeperMgr.getInstance();
+
+        //
+        // 注入
+        //
+//        new NonStrictExpectations(obj) {
+//            {
+//                ResilientActiveKeyValueStore store = new ResilientActiveKeyValueStoreMock();
+//                this.setField(obj, "store", store);
+//            }
+//        };
+        obj.init("192.168.20.69:2181", "/disconf/zhipin-pes_1_0_0_0_qa/file/resources.properties", false);
+
+        List<String> list = ZookeeperMgr.getInstance().getRootChildren();
+
+        for (String item : list) {
+
+            System.out.println(item);
+        }
+
+        Assert.assertTrue(list.size() > 0);
+    }
+
+    /**
      * 写结点
      */
     @Test

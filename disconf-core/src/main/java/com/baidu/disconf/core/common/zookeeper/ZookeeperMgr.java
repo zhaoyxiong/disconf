@@ -20,6 +20,7 @@ import com.baidu.disconf.core.common.zookeeper.inner.ResilientActiveKeyValueStor
  * @author liaoqiqi
  * @version 2014-7-7
  */
+@Deprecated
 public class ZookeeperMgr {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperMgr.class);

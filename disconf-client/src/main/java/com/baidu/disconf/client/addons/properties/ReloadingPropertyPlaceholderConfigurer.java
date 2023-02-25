@@ -27,6 +27,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.PropertyPlaceholderHelper;
 import org.springframework.util.StringValueResolver;
 
 /**
@@ -93,9 +94,47 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
                 startIndex = -1;
             }
         }
+
+        PropertyPlaceholderHelper helper = new PropertyPlaceholderHelper(
+                placeholderPrefix, placeholderSuffix, valueSeparator, ignoreUnresolvablePlaceholders);
+        PropertyPlaceholderHelper.PlaceholderResolver resolver = new PropertyPlaceholderConfigurerResolver(props);
+        return helper.replacePlaceholders(strVal, resolver);
         // then, business as usual. no recursive reloading placeholders please.
-        return super.parseStringValue(buf.toString(), props, visitedPlaceholders);
+//        return super.parseStringValue(buf.toString(), props, visitedPlaceholders);
     }
+
+    /**
+     * 自定义内部类，解决Spring 5.0.0 不支持问题
+     */
+    private class PropertyPlaceholderConfigurerResolver implements PropertyPlaceholderHelper.PlaceholderResolver {
+
+        private final Properties props;
+
+        private PropertyPlaceholderConfigurerResolver(Properties props) {
+            this.props = props;
+        }
+
+        @Override
+        public String resolvePlaceholder(String placeholderName) {
+            return resolvePlaceholder(placeholderName, props, 1);
+        }
+
+        protected String resolvePlaceholder(String placeholder, Properties props, int systemPropertiesMode) {
+            String propVal = null;
+            if (systemPropertiesMode == SYSTEM_PROPERTIES_MODE_OVERRIDE) {
+                propVal = resolveSystemProperty(placeholder);
+            }
+            if (propVal == null) {
+                propVal = props.getProperty(placeholder);
+            }
+            if (propVal == null && systemPropertiesMode == SYSTEM_PROPERTIES_MODE_FALLBACK) {
+                propVal = resolveSystemProperty(placeholder);
+            }
+            return propVal;
+        }
+    }
+
+
 
     /**
      * @param currentBeanName     当前的bean name

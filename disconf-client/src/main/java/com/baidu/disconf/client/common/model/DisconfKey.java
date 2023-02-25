@@ -16,6 +16,13 @@ public class DisconfKey {
         this.key = key;
     }
 
+    /**
+     * 获取DisconfKey
+     */
+    public static DisconfKey getDisconfKey(DisConfigTypeEnum disConfigTypeEnum, String key) {
+        return new DisconfKey(disConfigTypeEnum, key);
+    }
+
     // 类型
     private DisConfigTypeEnum disConfigTypeEnum;
 

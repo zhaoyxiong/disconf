@@ -42,12 +42,12 @@ public class ConfigWatcher implements Watcher {
 
     }
 
-    public static void main(String[] args) throws Exception {
-
-        ConfigWatcher configWatcher = new ConfigWatcher(args[0]);
-        configWatcher.displayConfig();
-
-        // stay alive until process is killed or thread is interrupted
-        Thread.sleep(Long.MAX_VALUE);
-    }
+//    public static void main(String[] args) throws Exception {
+//
+//        ConfigWatcher configWatcher = new ConfigWatcher(args[0]);
+//        configWatcher.displayConfig();
+//
+//        // stay alive until process is killed or thread is interrupted
+//        Thread.sleep(Long.MAX_VALUE);
+//    }
 }

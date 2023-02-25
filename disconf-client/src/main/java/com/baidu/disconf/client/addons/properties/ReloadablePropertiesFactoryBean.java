@@ -14,6 +14,9 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
@@ -49,6 +52,7 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
     }
 
     /**
+     *
      */
     public void setLocations(List<String> fileNames) {
 
@@ -93,7 +97,6 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
      * get file name from resource
      *
      * @param fileName
-     *
      * @return
      */
     private String getFileName(String fileName) {
@@ -139,7 +142,6 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
 
     /**
      * @return
-     *
      * @throws IOException
      */
     @Override
@@ -171,6 +173,15 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
         // add for monitor
         ReloadConfigurationMonitor.addReconfigurableBean((ReconfigurableBean) reloadableProperties);
 
+        // 修改，将配置写入Environment 中
+        Environment environment = applicationContext.getEnvironment();
+
+        ConfigurableEnvironment configurableEnvironment = (ConfigurableEnvironment) environment;
+
+        PropertiesPropertySource propertiesPropertySource = new PropertiesPropertySource("disconf", reloadableProperties);
+
+        configurableEnvironment.getPropertySources().addFirst(propertiesPropertySource);
+
         return reloadableProperties;
     }
 
@@ -182,7 +193,6 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
      * 根据修改时间来判定是否reload
      *
      * @param forceReload
-     *
      * @throws IOException
      */
     protected void reload(final boolean forceReload) throws IOException {
