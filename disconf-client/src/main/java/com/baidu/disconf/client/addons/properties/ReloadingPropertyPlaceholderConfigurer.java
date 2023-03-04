@@ -1,15 +1,9 @@
 package com.baidu.disconf.client.addons.properties;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
+import com.baidu.disconf.client.usertools.PlaceholderManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanWrapper;
@@ -24,8 +18,10 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionVisitor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.Ordered;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.PropertyPlaceholderHelper;
 import org.springframework.util.StringValueResolver;
@@ -60,9 +56,7 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
      * @param strVal
      * @param props
      * @param visitedPlaceholders
-     *
      * @return
-     *
      * @throws BeanDefinitionStoreException
      */
     protected String parseStringValue(String strVal, Properties props, Set visitedPlaceholders)
@@ -116,6 +110,7 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
 
         @Override
         public String resolvePlaceholder(String placeholderName) {
+            PlaceholderManager.registerDefault(placeholderName);
             return resolvePlaceholder(placeholderName, props, 1);
         }
 
@@ -135,12 +130,10 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
     }
 
 
-
     /**
      * @param currentBeanName     当前的bean name
      * @param currentPropertyName 当前它的属性
      * @param orgStrVal           原来的值
-     *
      * @return
      */
     private DynamicProperty getDynamic(String currentBeanName, String currentPropertyName, String orgStrVal) {
@@ -159,7 +152,6 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
      * merge property and record last merge
      *
      * @return
-     *
      * @throws IOException
      */
     protected Properties mergeProperties() throws IOException {
@@ -402,6 +394,8 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
     /**
      * copy & paste, just so we can insert our own visitor.
      * 启动时 进行配置的解析
+     * <p>
+     * 此处增加配置，完成properties装载、bean 中的 $value 替换
      */
     protected void processProperties(ConfigurableListableBeanFactory beanFactoryToProcess, Properties props)
             throws BeansException {
@@ -477,19 +471,84 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
             this.props = props;
         }
 
+        @Override
+        public void visitBeanDefinition(BeanDefinition beanDefinition) {
+            super.visitBeanDefinition(beanDefinition);
+        }
+
+        @Override
+        protected void visitBeanClassName(BeanDefinition beanDefinition) {
+            super.visitBeanClassName(beanDefinition);
+            List<String> placeholderList = new ArrayList<>();
+
+            // 遍历 value, 如果有${}, 则记录在本地占位符缓存 中
+            for (ConstructorArgumentValues.ValueHolder valueHolder : beanDefinition.getConstructorArgumentValues().getGenericArgumentValues()) {
+                if (null == valueHolder.getValue()) {
+                    continue;
+                }
+                String suspectedPlaceholder = valueHolder.getValue().toString();
+                this.buildPlaceholderList(placeholderList, suspectedPlaceholder);
+            }
+            if (placeholderList.size() > 0) {
+                PlaceholderManager.register(currentBeanName, placeholderList);
+            }
+        }
+
+        /**
+         * 渲染bean 对应的properties 值
+         */
+        @Override
         protected void visitPropertyValues(MutablePropertyValues pvs) {
             PropertyValue[] pvArray = pvs.getPropertyValues();
-            for (PropertyValue pv : pvArray) {
-                currentPropertyName = pv.getName();
+            List<String> placeholderList = new ArrayList<>(pvArray.length);
+            for (PropertyValue propertyValue : pvArray) {
+                currentPropertyName = propertyValue.getName();
+                if (null == propertyValue.getValue()) {
+                    continue;
+                }
+                String suspectedPlaceholder = propertyValue.getValue().toString();
+                this.buildPlaceholderList(placeholderList, suspectedPlaceholder);
                 try {
-                    Object newVal = resolveValue(pv.getValue());
-                    if (!ObjectUtils.nullSafeEquals(newVal, pv.getValue())) {
-                        pvs.addPropertyValue(pv.getName(), newVal);
+                    Object newVal = resolveValue(propertyValue.getValue());
+                    if (!ObjectUtils.nullSafeEquals(newVal, propertyValue.getValue())) {
+                        pvs.addPropertyValue(propertyValue.getName(), newVal);
                     }
                 } finally {
                     currentPropertyName = null;
                 }
             }
+            if (placeholderList.size() > 0) {
+                PlaceholderManager.register(currentBeanName, placeholderList);
+            }
+        }
+
+        private void buildPlaceholderList(List<String> placeholderList, String suspectedPlaceholder) {
+            int startIndex = suspectedPlaceholder.indexOf(DEFAULT_PLACEHOLDER_PREFIX);
+            while (startIndex != -1) {
+                int endIndex = suspectedPlaceholder.indexOf(DEFAULT_PLACEHOLDER_SUFFIX, startIndex + DEFAULT_PLACEHOLDER_PREFIX.length());
+                if (endIndex != -1) {
+                    if (currentBeanName != null && currentPropertyName != null) {
+                        String placeholder = suspectedPlaceholder.substring(startIndex + DEFAULT_PLACEHOLDER_PREFIX.length(), endIndex);
+                        placeholder = getPlaceholderSelf(placeholder);
+                        placeholderList.add(placeholder);
+                    } else {
+                        logger.debug("dynamic property outside bean property value - ignored: " + DEFAULT_PLACEHOLDER_PREFIX);
+                    }
+                    startIndex = endIndex - DEFAULT_PLACEHOLDER_PREFIX.length() + DEFAULT_PLACEHOLDER_PREFIX.length() + DEFAULT_PLACEHOLDER_SUFFIX.length();
+                    startIndex = suspectedPlaceholder.indexOf(DEFAULT_PLACEHOLDER_PREFIX, startIndex);
+                } else {
+                    startIndex = -1;
+                }
+            }
+        }
+
+        protected final String getPlaceholderSelf(final String placeholderWithDefault) {
+            String placeholder = getPlaceholder(placeholderWithDefault);
+            int separatorIdx = placeholder.indexOf(DEFAULT_VALUE_SEPARATOR);
+            if (separatorIdx == -1) {
+                return placeholder;
+            }
+            return placeholder.substring(0, separatorIdx);
         }
 
         protected String resolveStringValue(String strVal) throws BeansException {
@@ -524,7 +583,7 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
     }
 
     public void setProperties(Properties properties) {
-        setPropertiesArray(new Properties[] {properties});
+        setPropertiesArray(new Properties[]{properties});
     }
 
     public void setPropertiesArray(Properties[] propertiesArray) {
@@ -550,5 +609,11 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
     public void setBeanFactory(BeanFactory beanFactory) {
         this.beanFactory = beanFactory;
         super.setBeanFactory(beanFactory);
+    }
+
+    // 通过设定顺序，让自定义的reload configurer 提前执行
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE;
     }
 }

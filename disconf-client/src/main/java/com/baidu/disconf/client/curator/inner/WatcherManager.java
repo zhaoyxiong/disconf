@@ -75,8 +75,6 @@ public class WatcherManager {
                 if (newState == ConnectionState.CONNECTED || newState == ConnectionState.RECONNECTED) {
                     if (isConnected.compareAndSet(false, true)) {
                         try {
-//                        disconfSysUpdateCallback.reload();
-//                        watch(DisconfConfig.getInstance().getDisconfAppPropList());
                             // 重新建立监控
                             for (DisconfKey disconfKey : WatcherInnerManager.getWatcherKeyList()) {
                                 // 先更新，然后重新监控
