@@ -3,6 +3,7 @@ package com.baidu.disconf.client.store.aspect;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import com.baidu.disconf.client.usertools.PlaceholderManager;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -43,6 +44,8 @@ public class DisconfAspectJ {
     @Around("anyPublicMethod() && @annotation(disconfFileItem)")
     public Object decideAccess(ProceedingJoinPoint pjp, DisconfFileItem disconfFileItem) throws Throwable {
 
+        // 记录当前 @DisconfFileItem 请求次数
+        PlaceholderManager.increment(disconfFileItem.name());
         if (DisClientConfig.getInstance().ENABLE_DISCONF) {
 
             MethodSignature ms = (MethodSignature) pjp.getSignature();

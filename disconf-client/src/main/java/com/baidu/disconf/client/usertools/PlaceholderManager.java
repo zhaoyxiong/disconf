@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -16,6 +17,8 @@ public class PlaceholderManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(PlaceholderManager.class);
 
     private static final LinkedHashMap<String, List<String>> PLACEHOLDER_USED_MAP = new LinkedHashMap<>(1024, 0.75f, false);
+
+    private static final Map<String, Integer> PLACEHOLDER_USED_COUNT_MAP = new ConcurrentHashMap<>(1024, 0.75f, 1);
 
     private static final AtomicBoolean hasPutClassName = new AtomicBoolean(false);
 
@@ -145,6 +148,26 @@ public class PlaceholderManager {
 //
 //
 //    }
+
+    /**
+     * 统计当前接口 在服务启动后会被调用多少次
+     *
+     * @param placeholder 参数
+     */
+    public static void increment(String placeholder) {
+        if (PLACEHOLDER_USED_COUNT_MAP.containsKey(placeholder)) {
+            PLACEHOLDER_USED_COUNT_MAP.put(placeholder, PLACEHOLDER_USED_COUNT_MAP.get(placeholder) + 1);
+        } else {
+            PLACEHOLDER_USED_COUNT_MAP.put(placeholder, 1);
+        }
+    }
+
+    /**
+     * 获取接口使用情况
+     */
+    public static Map<String, Integer> getPlaceholderUsedCountMap() {
+        return PLACEHOLDER_USED_COUNT_MAP;
+    }
 
     public static void main(String[] args) {
         // 插入排序

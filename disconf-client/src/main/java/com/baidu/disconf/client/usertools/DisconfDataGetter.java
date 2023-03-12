@@ -11,7 +11,7 @@ import com.baidu.disconf.client.usertools.impl.DisconfDataGetterDefaultImpl;
  */
 public class DisconfDataGetter {
 
-    private static IDisconfDataGetter iDisconfDataGetter = new DisconfDataGetterDefaultImpl();
+    private static final IDisconfDataGetter iDisconfDataGetter = new DisconfDataGetterDefaultImpl();
 
     /**
      * 根据 分布式配置文件 获取该配置文件的所有数据，以 map形式呈现
