@@ -47,7 +47,7 @@ public class DisconfMgrBean implements BeanDefinitionRegistryPostProcessor, Prio
     }
 
     /**
-     * 这个函数无法达到最高优先级，例如PropertyPlaceholderConfigurer
+     * 这个函数无法达到最高优先级，例如 PropertyPlaceholderConfigurer
      */
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
@@ -56,6 +56,7 @@ public class DisconfMgrBean implements BeanDefinitionRegistryPostProcessor, Prio
     /**
      * 第一次扫描<br/>
      * 在Spring内部的Bean定义初始化后执行，这样是最高优先级的
+     * 实现BeanDefinitionRegistryPostProcessor 会比其他实现 BeanFactoryPostProcessor 的优先级更高
      */
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {

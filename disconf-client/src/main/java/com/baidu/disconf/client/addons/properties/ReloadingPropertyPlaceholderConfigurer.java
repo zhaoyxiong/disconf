@@ -47,11 +47,16 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
     private String beanName;
 
     private BeanFactory beanFactory;
+
+    /**
+     * 通常会传入 ReloadablePropertiesFactoryBean
+     * @see ReloadablePropertiesFactoryBean
+     */
     private Properties[] propertiesArray;
 
     /**
      * 对于被标记为动态的，进行 构造 property dependency
-     * 非动态的，则由原来的spring进行处理
+     * 非动态的，则由原来的spring进行解析处理
      *
      * @param strVal
      * @param props
@@ -173,9 +178,7 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
             //
             Properties newProperties = mergeProperties();
 
-            //
             // 获取哪些 dynamic property 被影响
-            //
             Set<String> placeholders = placeholderToDynamics.keySet();
             Set<DynamicProperty> allDynamics = new HashSet<DynamicProperty>();
             for (String placeholder : placeholders) {
@@ -191,9 +194,7 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
                 }
             }
 
-            //
             // 获取受影响的beans
-            //
             Map<String, List<DynamicProperty>> dynamicsByBeanName = new HashMap<String, List<DynamicProperty>>();
             Map<String, Object> beanByBeanName = new HashMap<String, Object>();
             for (DynamicProperty dynamic : allDynamics) {
@@ -211,9 +212,7 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
                         logger.error("Error obtaining bean " + beanName, e);
                     }
 
-                    //
                     // say hello
-                    //
                     try {
                         if (bean instanceof IReconfigurationAware) {
                             ((IReconfigurationAware) bean).beforeReconfiguration();  // hello!
@@ -225,9 +224,7 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
                 l.add(dynamic);
             }
 
-            //
             // 处理受影响的bean
-            //
             Collection<String> beanNames = dynamicsByBeanName.keySet();
             for (String beanName : beanNames) {
                 Object bean = beanByBeanName.get(beanName);
@@ -235,6 +232,8 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
                 {
                     continue;
                 }
+
+                // 采用BeanWrapper 触发 spring中 变更 bean 的属性
                 BeanWrapper beanWrapper = new BeanWrapperImpl(bean);
 
                 // for all affected ...
@@ -267,9 +266,7 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
                 }
             }
 
-            //
             // say goodbye.
-            //
             for (String beanName : beanNames) {
                 Object bean = beanByBeanName.get(beanName);
                 try {
@@ -614,6 +611,6 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
     // 通过设定顺序，让自定义的reload configurer 提前执行
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
+        return Ordered.HIGHEST_PRECEDENCE + 1;
     }
 }
