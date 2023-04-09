@@ -72,11 +72,11 @@ public class DisconfDataGetter {
     /**
      * 获取对应文件中没有使用到的配置
      */
-    public static List<String> getUnUsedConfig() {
-        List<String> result = new ArrayList<>();
-
+    public static Map<String, List<String>> getUnUsedConfig() {
+        Map<String, List<String>> resultMap = new HashMap<>();
         Resource[] locations = PlaceholderManager.getLocations();
         for (Resource location : locations) {
+            List<String> result = new ArrayList<>();
             String fileName = location.getFilename();
             Map<String, Object> fileProperties = new HashMap<>();
             try {
@@ -91,7 +91,8 @@ public class DisconfDataGetter {
                     result.add(key);
                 }
             }
+            resultMap.put(fileName, result);
         }
-        return result;
+        return resultMap;
     }
 }
