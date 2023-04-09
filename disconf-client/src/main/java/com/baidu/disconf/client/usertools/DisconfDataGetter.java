@@ -5,6 +5,7 @@ import java.util.*;
 import com.baidu.disconf.client.common.constants.SupportFileTypeEnum;
 import com.baidu.disconf.client.core.filetype.FileTypeProcessorUtils;
 import com.baidu.disconf.client.usertools.impl.DisconfDataGetterDefaultImpl;
+import org.springframework.core.io.Resource;
 
 /**
  * Created by knightliao on 16/5/28.
@@ -63,6 +64,32 @@ public class DisconfDataGetter {
             String key = entry.getKey();
             if (!itemMap.containsKey(key) && !placeholderSet.contains(key)) {
                 result.add(key);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 获取对应文件中没有使用到的配置
+     */
+    public static List<String> getUnUsedConfig() {
+        List<String> result = new ArrayList<>();
+
+        Resource[] locations = PlaceholderManager.getLocations();
+        for (Resource location : locations) {
+            String fileName = location.getFilename();
+            Map<String, Object> fileProperties = new HashMap<>();
+            try {
+                fileProperties = FileTypeProcessorUtils.getKvMap(SupportFileTypeEnum.PROPERTIES, fileName);
+            } catch (Exception e) {
+            }
+            Map<String, Object> itemMap = iDisconfDataGetter.getByFile(fileName);
+            Set<String> placeholderSet = new HashSet<>(PlaceholderManager.getPlaceholderList());
+            for (Map.Entry<String, Object> entry : fileProperties.entrySet()) {
+                String key = entry.getKey();
+                if (!itemMap.containsKey(key) && !placeholderSet.contains(key)) {
+                    result.add(key);
+                }
             }
         }
         return result;

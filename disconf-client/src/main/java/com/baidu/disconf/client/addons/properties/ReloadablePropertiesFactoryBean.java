@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import com.baidu.disconf.client.usertools.PlaceholderManager;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,6 +92,8 @@ public class ReloadablePropertiesFactoryBean extends PropertiesFactoryBean imple
         this.locations = resources.toArray(new Resource[resources.size()]);
         lastModified = new long[locations.length];
         super.setLocations(locations);
+        // 记录 需要扫描的文件
+        PlaceholderManager.setLocations(locations);
     }
 
     /**

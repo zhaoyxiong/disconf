@@ -2,6 +2,7 @@ package com.baidu.disconf.client.usertools;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,6 +25,8 @@ public class PlaceholderManager {
 
     private static final AtomicBoolean hasPutProperties = new AtomicBoolean(true);
     public static final String DEFAULT = "default";
+
+    private static Resource[] locations;
 
     /**
      * 开始注册，当前只记录className
@@ -167,6 +170,20 @@ public class PlaceholderManager {
      */
     public static Map<String, Integer> getPlaceholderUsedCountMap() {
         return PLACEHOLDER_USED_COUNT_MAP;
+    }
+
+    /**
+     * 记录当前服务的 locations 文件列表
+     */
+    public static void setLocations(Resource[] locations) {
+        PlaceholderManager.locations = locations;
+    }
+
+    /**
+     * 获取location列表
+     */
+    public static Resource[] getLocations() {
+        return PlaceholderManager.locations;
     }
 
     public static void main(String[] args) {
