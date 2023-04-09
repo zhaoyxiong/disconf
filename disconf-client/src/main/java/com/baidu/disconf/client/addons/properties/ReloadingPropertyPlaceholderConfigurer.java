@@ -455,6 +455,7 @@ public class ReloadingPropertyPlaceholderConfigurer extends DefaultPropertyPlace
                 ((ReloadableProperties) properties).removeReloadablePropertiesListener(this);
             }
         }
+        logger.info("Disconf used count statistics, all config:{}", PlaceholderManager.getPlaceholderUsedCountMap());
     }
 
     /**

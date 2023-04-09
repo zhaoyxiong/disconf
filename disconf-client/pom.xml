@@ -139,7 +139,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- ================ provided ================ -->
+        <!-- ================ provided: 标识 我们期望使用者 有以下依赖 ================ -->
 
         <dependency>
             <groupId>org.springframework</groupId>

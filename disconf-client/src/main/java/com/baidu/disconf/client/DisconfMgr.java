@@ -169,8 +169,8 @@ public class DisconfMgr implements ApplicationContextAware {
         }
         LOGGER.info("******************************* DISCONF END *******************************");
 
-        // todo 2023/4/9 6:31 PM zyx : 考虑增加日志输出
-        System.out.println(DisconfDataGetter.getUnUsedConfig());
+        // 对未使用到的配置进行日志输出
+        LOGGER.info("**************** DISCONF STATISTICS UN USED CONFIG LIST: {}", DisconfDataGetter.getUnUsedConfig());
     }
 
     /**
