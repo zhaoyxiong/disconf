@@ -170,7 +170,7 @@ public class DisconfMgr implements ApplicationContextAware {
         LOGGER.info("******************************* DISCONF END *******************************");
 
         // 对未使用到的配置进行日志输出
-        LOGGER.info("**************** DISCONF STATISTICS UN USED CONFIG LIST: {}", DisconfDataGetter.getUnUsedConfig());
+        LOGGER.info("**************** DISCONF STATISTICS UN USED CONFIG LIST: {}", DisconfDataGetter.getUnUsedConfig().toString());
     }
 
     /**
