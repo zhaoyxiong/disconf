@@ -5,7 +5,7 @@
 
     <groupId>com.baidu.disconf</groupId>
     <artifactId>disconf-base</artifactId>
-    <version>1.0.7-zp-SNAPSHOT</version>
+    <version>1.0.8-zp-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -27,9 +27,9 @@
 
     <properties>
         <!-- 模块版本号 -->
-        <disconf-core.version>1.0.7-zp-SNAPSHOT</disconf-core.version>
-        <disconf-client.version>1.0.7-zp-SNAPSHOT</disconf-client.version>
-        <disconf-client-spring.version>1.0.7-zp-SNAPSHOT</disconf-client-spring.version>
+        <disconf-core.version>1.0.8-zp-SNAPSHOT</disconf-core.version>
+        <disconf-client.version>1.0.8-zp-SNAPSHOT</disconf-client.version>
+        <disconf-client-spring.version>1.0.8-zp-SNAPSHOT</disconf-client-spring.version>
 
         <!-- Spring項目配置 -->
         <encoding>UTF-8</encoding>
