@@ -52,7 +52,7 @@ public class NodeWatcher implements Watcher {
         this.disconfSysUpdateCallback = disconfSysUpdateCallback;
         this.disconfKey = new DisconfKey(disConfigTypeEnum, keyName);
         // 创建时注册到WatcherManager 中
-        WatcherInnerManager.registerWatcher(this.disconfKey, this);
+        NodeWatcherManager.registerWatcher(this.disconfKey, this);
     }
 
     /**

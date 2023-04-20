@@ -67,7 +67,6 @@ public class ZookeeperManager {
         log.info("zoo prefix: " + defaultPrefixString);
 
         // 新建父目录
-        // todo 2023/2/23 12:09 AM zyx 此处可以考虑用 ZKPaths.makePath()
         makeDir(defaultPrefixString, ZooUtils.getIp());
     }
 
@@ -76,7 +75,6 @@ public class ZookeeperManager {
      *
      * @param dir 建立路径
      */
-    // todo 2023/2/20 11:40 PM zyx makeDir 可以替换为 ZKPaths.makePath()
     public void makeDir(String dir, String data) {
         try {
             boolean defaultPathExist = watcherManager.exists(dir);

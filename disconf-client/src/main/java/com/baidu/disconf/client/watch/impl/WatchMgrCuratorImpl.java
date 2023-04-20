@@ -7,7 +7,7 @@ import com.baidu.disconf.client.curator.ZookeeperManager;
 import com.baidu.disconf.client.watch.WatchMgr;
 import com.baidu.disconf.client.watch.inner.DisconfSysUpdateCallback;
 import com.baidu.disconf.client.watch.inner.NodeWatcher;
-import com.baidu.disconf.client.watch.inner.WatcherInnerManager;
+import com.baidu.disconf.client.watch.inner.NodeWatcherManager;
 import com.baidu.disconf.core.common.constants.DisConfigTypeEnum;
 import com.baidu.disconf.core.common.path.ZooPathMgr;
 import com.baidu.disconf.core.common.utils.ZooUtils;
@@ -51,7 +51,7 @@ public class WatchMgrCuratorImpl implements WatchMgr {
         this.makeTempChildPath(monitorPath, value);
 
         // 3、初始化监控节点【需要幂等】
-        NodeWatcher nodeWatcher = WatcherInnerManager.createIfPresent(disconfCoreMgr, monitorPath, keyName, disConfigTypeEnum,
+        NodeWatcher nodeWatcher = NodeWatcherManager.createIfPresent(disconfCoreMgr, monitorPath, keyName, disConfigTypeEnum,
                 new DisconfSysUpdateCallback(), debug);
         // 4、监听
         nodeWatcher.monitorMaster();

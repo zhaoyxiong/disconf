@@ -16,9 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2023/2/19 10:10 PM
  * @desc NodeWatcher 管理器
  */
-public class WatcherInnerManager {
+public class NodeWatcherManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(WatcherInnerManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NodeWatcherManager.class);
 
     private static final Map<DisconfKey, NodeWatcher> DISCONF_KEY_MAP = new ConcurrentHashMap<>();
 

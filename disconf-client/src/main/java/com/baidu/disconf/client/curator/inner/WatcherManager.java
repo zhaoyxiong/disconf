@@ -1,11 +1,9 @@
 package com.baidu.disconf.client.curator.inner;
 
 import com.baidu.disconf.client.common.model.DisconfKey;
-import com.baidu.disconf.client.watch.inner.WatcherInnerManager;
+import com.baidu.disconf.client.watch.inner.NodeWatcherManager;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.api.BackgroundCallback;
-import org.apache.curator.framework.api.CuratorEvent;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.framework.state.ConnectionStateListener;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -76,10 +74,9 @@ public class WatcherManager {
                     if (isConnected.compareAndSet(false, true)) {
                         try {
                             // 重新建立监控
-                            for (DisconfKey disconfKey : WatcherInnerManager.getWatcherKeyList()) {
-                                // 先更新，然后重新监控
-                                WatcherInnerManager.getWatcher(disconfKey).reload();
-                                WatcherInnerManager.getWatcher(disconfKey).monitorMaster();
+                            for (DisconfKey disconfKey : NodeWatcherManager.getWatcherKeyList()) {
+                                // 调用重新reload 方法，重新拉取数据
+                                NodeWatcherManager.getWatcher(disconfKey).reload();
                             }
                         } catch (Exception e) {
                             ThreadUtils.checkInterrupted(e);
