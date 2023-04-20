@@ -3,7 +3,6 @@ package com.baidu.disconf.client;
 import java.util.List;
 
 import com.baidu.disconf.client.usertools.DisconfDataGetter;
-import com.baidu.disconf.client.usertools.PlaceholderManager;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
